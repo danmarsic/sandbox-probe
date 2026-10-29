@@ -3,8 +3,6 @@ kind: Pod
 metadata:
   name: probe-stuck
   namespace: dvc-probe
-  finalizers:
-  - test.fitc.de/block
 spec:
   containers:
   - name: c
