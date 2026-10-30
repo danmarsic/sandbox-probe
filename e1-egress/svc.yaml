@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: probe-nginx-svc
+  namespace: dvc-probe
+spec:
+  selector:
+    app: probe-nginx
+  ports:
+  - port: 80
+    targetPort: 80
