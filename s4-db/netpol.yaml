@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: probe-allow-db
+  namespace: dvc-probe
+spec:
+  podSelector:
+    matchLabels:
+      app: probe-db
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 193.148.167.219/32
+    ports:
+    - protocol: TCP
+      port: 5432
