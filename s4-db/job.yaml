@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: probe-db-login
+  namespace: dvc-probe
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: probe-db
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: psql
+        image: postgres:17-alpine
+        env:
+        - name: PGHOST
+          valueFrom: {secretKeyRef: {name: probe-db-creds, key: hostname}}
+        - name: PGPORT
+          valueFrom: {secretKeyRef: {name: probe-db-creds, key: port}}
+        - name: PGDATABASE
+          valueFrom: {secretKeyRef: {name: probe-db-creds, key: database}}
+        - name: PGUSER
+          valueFrom: {secretKeyRef: {name: probe-db-creds, key: username}}
+        - name: PGPASSWORD
+          valueFrom: {secretKeyRef: {name: probe-db-creds, key: password}}
+        command:
+        - sh
+        - -c
+        - |
+          echo "=== DB LOGIN TEST ==="
+          psql "sslmode=require" -c "select version();" -c "select current_user, current_database();" 2>&1
+          echo "=== EXIT $? ==="
