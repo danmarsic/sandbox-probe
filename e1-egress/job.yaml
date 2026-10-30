@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: probe-egress-1
+  namespace: dvc-probe
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: egress
+        image: curlimages/curl:8.10.1
+        command:
+        - sh
+        - -c
+        - |
+          echo "=== T1 intern kubernetes.default.svc:443 ==="
+          curl -sk -o /dev/null -w "HTTP %{http_code}\n" --connect-timeout 5 https://kubernetes.default.svc:443/ 2>&1 || echo "FAIL exit $?"
+          echo "=== T2 internet portquiz.net:5432 ==="
+          curl -sv --connect-timeout 5 --max-time 6 telnet://portquiz.net:5432 2>&1 | grep -E "Connected|timed out|Could not|Failed" || true
+          echo "=== T3 DB hostname:5432 ==="
+          curl -sv --connect-timeout 5 --max-time 6 telnet://e7ae0aeb-ba5c-4c13-8810-4b7465c65726.postgresql.eu01.onstackit.cloud:5432 2>&1 | grep -E "Connected|timed out|Could not|Failed" || true
+          echo "=== T4 DB IP 193.148.167.219:5432 ==="
+          curl -sv --connect-timeout 5 --max-time 6 telnet://193.148.167.219:5432 2>&1 | grep -E "Connected|timed out|Could not|Failed" || true
+          echo "=== T5 Secrets Manager ==="
+          curl -sS -i --connect-timeout 5 --max-time 8 https://prod.sm.eu01.stackit.cloud/v1/sys/health 2>&1 | head -n 3 || echo "FAIL exit $?"
+          echo "=== DONE ==="
